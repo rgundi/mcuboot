@@ -19,13 +19,13 @@ MCUBOOT_LOG_MODULE_DECLARE(mcuboot);
 
 #if (!defined(CONFIG_XTENSA) && defined(DT_FLASH_DEV_NAME))
 #define FLASH_DEVICE_ID SOC_FLASH_0_ID
+#define FLASH_DEVICE_BASE CONFIG_FLASH_BASE_ADDRESS
 #elif (defined(CONFIG_XTENSA) && defined(DT_SPI_NOR_DRV_NAME))
 #define FLASH_DEVICE_ID SPI_FLASH_0_ID
 #else
 #error "FLASH_DEVICE_ID could not be determined"
 #endif
 
-#define FLASH_DEVICE_BASE CONFIG_FLASH_BASE_ADDRESS
 static struct device *flash_dev;
 
 struct device *flash_device_get_binding(char *dev_name)
@@ -38,12 +38,16 @@ struct device *flash_device_get_binding(char *dev_name)
 
 int flash_device_base(uint8_t fd_id, uintptr_t *ret)
 {
+#if (!defined(CONFIG_XTENSA) && defined(DT_FLASH_DEV_NAME))
     if (fd_id != FLASH_DEVICE_ID) {
         BOOT_LOG_ERR("invalid flash ID %d; expected %d",
                      fd_id, FLASH_DEVICE_ID);
         return -EINVAL;
     }
     *ret = FLASH_DEVICE_BASE;
+#elif (defined(CONFIG_XTENSA) && defined(DT_SPI_NOR_DRV_NAME))
+    *ret = 0;
+#endif
     return 0;
 }
 
